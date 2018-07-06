@@ -12,9 +12,9 @@
 #' requires you to specify the box in which you wish to fit the text, usually
 #' with 'xmin', 'xmax', 'ymin' and 'ymax' aesthetics. Alternatively, you can
 #' specify the centre of the box with 'x' and/or 'y', and the height and/or
-#' width of the box with 'height' and/or 'width'. This can be useful when one or
-#' both axes are discrete. 'height' and 'width' are expressed in millimetres;
-#' they both default to 4 mm.
+#' width of the box with 'height' and/or 'width' arguments. This can be useful
+#' when one or both axes are discrete. 'height' and 'width' should be provided
+#' as `grid::unit()` objects, and both default to 40 mm.
 #'
 #' By default, the text will be drawn as if with \code{geom_text}, unless it is
 #' too big for the box, in which case it will be shrunk to fit the box. With
@@ -35,8 +35,8 @@
 #'
 #' \itemize{
 #'   \item label (required)
-#'   \item xmin, xmax OR x, width (required)
-#'   \item ymin, ymax OR y, height (required)
+#'   \item xmin, xmax OR x (required)
+#'   \item ymin, ymax OR y (required)
 #'   \item alpha
 #'   \item angle
 #'   \item colour
@@ -58,6 +58,10 @@
 #' See Details.
 #' @param reflow If 'TRUE', text will be reflowed (wrapped) to better fit the
 #' box. See Details.
+#' @param width,height When using `x` and/or `y` aesthetics, these will be used
+#' to determine the width and/or height of the box. These should be
+#' either numeric values on the \code{x} and \code{y} scales or
+#' \code{grid::unit()} objects. Both default to 40 mm units.
 #' @param mapping \code{ggplot2::aes()} object as standard in 'ggplot2'. Note
 #' that aesthetics specifying the box must be provided. See Details.
 #' @param data,stat,position,na.rm,show.legend,inherit.aes,... Standard geom
@@ -83,8 +87,10 @@ geom_fit_text <- function(
   padding.y = grid::unit(0.1, "lines"),
   place = "centre",
   min.size = 4,
-  grow = F,
-  reflow = F,
+  grow = FALSE,
+  reflow = FALSE,
+  width = grid::unit(40, "mm"),
+  height = grid::unit(40, "mm"),
   ...
 ) {
   ggplot2::layer(
@@ -103,6 +109,8 @@ geom_fit_text <- function(
       min.size = min.size,
       grow = grow,
       reflow = reflow,
+      width = width,
+      height = height,
       ...
     )
   )
@@ -122,14 +130,86 @@ GeomFitText <- ggplot2::ggproto(
     fontface = 1,
     lineheight = 0.9,
     size = 12,
-    height = 4,
-    width = 4,
     x = NULL,
+    y = NULL,
     xmin = NULL,
     xmax = NULL,
     ymin = NULL,
-    ymax = NULL
+    ymax = NULL,
+    width = NULL,
+    height = NULL
   ),
+  setup_params = function(
+    params
+  ) {
+
+    # Check that width and height are `grid::unit()` objects
+    if(! class(params$width) == "unit" & !is.numeric(params$width)) {
+      stop("'width' should be numeric or a `grid::unit()` object",
+           .call = FALSE
+      )
+    }
+    if(! class(params$height) == "unit" & !is.numeric(params$height)) {
+      stop("'height' should be numeric or a `grid::unit()` object",
+           .call = FALSE
+      )
+    }
+
+    params
+
+  },
+  setup_data = function(
+    data,
+    params
+  ) {
+
+    # Warn about deprecated width and height aesthetics
+    if ("width" %in% names(data)) {
+      warning("`width` is now an argument, not an aesthetic, and will be removed in a future version")
+    }
+    if ("height" %in% names(data)) {
+      warning("`height` is now an argument, not an aesthetic, and will be removed in a future version")
+    }
+
+    # Check that valid aesthetics have been supplied for each dimension
+    if (!(
+      ("xmin" %in% names(data) & "xmax" %in% names(data)) |
+      ("x" %in% names(data))
+    )) {
+      stop(
+        "geom_fit_text needs either 'xmin' and 'xmax', or 'x'",
+        .call = FALSE
+      )
+    }
+    if (!(
+      "ymin" %in% names(data) & "ymax" %in% names(data) |
+      "y" %in% names(data)
+    )) {
+      stop(
+        "geom_fit_text needs either 'ymin' and 'ymax', or 'y'",
+        .call = FALSE
+      )
+    }
+
+    # If 'width' is not a unit, then interpret it as a numeric on the x scale
+    if (is.null(data$xmin) & 
+        is.null(data$xmax) & 
+        class(params$width) != "unit") {
+      data$xmin <- data$x - params$width / 2
+      data$xmax <- data$x + params$width / 2
+    }
+
+    # If 'height' is not a unit, then interpret it as a numeric on the y scale
+    if (is.null(data$ymin) & 
+        is.null(data$ymax) & 
+        class(params$height) != "unit") {
+      data$ymin <- data$y - params$height / 2
+      data$ymax <- data$y + params$height / 2
+    }
+
+    data
+
+  },
   draw_key = ggplot2::draw_key_text,
   draw_panel = function(
     data,
@@ -138,32 +218,14 @@ GeomFitText <- ggplot2::ggproto(
     padding.x = grid::unit(1, "mm"),
     padding.y = grid::unit(0.1, "lines"),
     min.size = 4,
-    grow = F,
-    reflow = F,
+    grow = FALSE,
+    reflow = FALSE,
+    width = grid::unit(40, "mm"),
+    height = grid::unit(40, "mm"),
     place = "centre"
   ) {
 
     data <- coord$transform(data, panel_scales)
-
-    # Check correct combination of discrete/continuous mappings for bounding box
-    if (!xor(
-      ("xmin" %in% names(data) & "xmax" %in% names(data)),
-      ("x" %in% names(data) & "width" %in% names(data))
-    )) {
-      stop(
-        "geom_fit_text needs either 'xmin' and 'xmax', or 'x' and 'width'",
-        .call = F
-      )
-    }
-    if (!xor(
-      "ymin" %in% names(data) & "ymax" %in% names(data),
-      "y" %in% names(data) * "height" %in% names(data)
-    )) {
-      stop(
-        "geom_fit_text needs either 'ymin' and 'ymax', or 'y' and 'height'",
-        .call = F
-      )
-    }
 
     gt <- grid::gTree(
       data = data,
@@ -173,6 +235,8 @@ GeomFitText <- ggplot2::ggproto(
       min.size = min.size,
       grow = grow,
       reflow = reflow,
+      width = width,
+      height = height,
       cl = "fittexttree"
     )
     gt$name <- grid::grobName(gt, "geom_fit_text")
@@ -186,23 +250,60 @@ makeContent.fittexttree <- function(x) {
 
   data <- x$data
 
-  # If x provided instead of xmin/xmax, generate boundary box from width
-  if ("x" %in% names(data)) {
+  # For backwards compatibility, if a 'width' or 'height' was provided in the
+  # data, convert to 'width' or 'height' parameters (assuming in mm) TODO this
+  # should be removed in a future version when width and height aesthetics are
+  # completely deprecated
+  if ("width" %in% names(data)) {
+    x$width <- grid::unit(data$width[1], "mm")
+  }
+  if ("height" %in% names(data)) {
+    x$height <- grid::unit(data$height[1], "mm")
+  }
+
+  # Determine which aesthetics to use for the bounding box
+  # Rules: if xmin/xmax are available, use these in preference to x UNLESS
+  # xmin == xmax, because this probably indicates position = "stack"; in this
+  # case, use x if it is available
+
+  # If xmin/xmax are not provided, or all xmin == xmax, generate boundary box
+  # from width
+  if (!("xmin" %in% names(data)) | 
+      (all(data$xmin == data$xmax) & "x" %in% names(data))) {
     data$xmin <- data$x - (
-      grid::convertWidth(grid::unit(data$width, "mm"), "native", valueOnly = T) / 2
+      grid::convertWidth(
+        grid::unit(x$width, "mm"),
+        "native",
+        valueOnly = TRUE
+      ) / 2
     )
     data$xmax <- data$x + (
-      grid::convertWidth(grid::unit(data$width, "mm"), "native", valueOnly = T) / 2
+      grid::convertWidth(
+        grid::unit(x$width, "mm"),
+        "native",
+        valueOnly = TRUE
+      ) / 2
     )
   }
 
-  # If y provided instead of ymin/ymax, generate boundary box from height
-  if ("y" %in% names(data)) {
+  # If ymin/ymax are not provided, or all ymin == ymax, generate boundary box
+  # from height
+  if (!("ymin" %in% names(data)) | 
+      (all(data$ymin == data$ymax) & 
+       "y" %in% names(data))) {
     data$ymin <- data$y - (
-      grid::convertHeight(grid::unit(data$height, "mm"), "native", valueOnly = T) / 2
+      grid::convertHeight(
+        grid::unit(x$height, "mm"),
+        "native",
+        valueOnly = TRUE
+      ) / 2
     )
     data$ymax <- data$y + (
-      grid::convertHeight(grid::unit(data$height, "mm"), "native", valueOnly = T) / 2
+      grid::convertHeight(
+        grid::unit(x$height, "mm"),
+        "native",
+        valueOnly = TRUE
+      ) / 2
     )
   }
 
@@ -211,7 +312,7 @@ makeContent.fittexttree <- function(x) {
   paddingy <- grid::convertHeight(x$padding.y, "native", valueOnly = TRUE)
 
   # Prepare grob for each text label
-  grobs <- lapply(1:nrow(data), function(i) {
+  grobs <- lapply(seq_len(nrow(data)), function(i) {
 
     # Convenience
     text <- data[i, ]
@@ -265,7 +366,9 @@ makeContent.fittexttree <- function(x) {
       text$hjust <- 0
       text$vjust <- 0.5
 
-    } else if (x$place == "centre" | x$place == "center" | x$place == "middle") {
+    } else if (x$place == "centre" | 
+               x$place == "center" | 
+               x$place == "middle") {
       text$x <- mean((c(text$xmin, text$xmax)))
       text$y <- mean(c(text$ymin, text$ymax))
       text$hjust <- 0.5
@@ -276,7 +379,7 @@ makeContent.fittexttree <- function(x) {
         "geom_fit_text does not recognise place '",
         x$place,
         "' (try something like 'topright' or 'centre')",
-        call. = F
+        call. = FALSE
       )
     }
 
@@ -340,7 +443,7 @@ makeContent.fittexttree <- function(x) {
           # By splitting the text on whitespace and passing normalize = F,
           # line breaks in the original text are respected
           tg$label <- paste(
-            stringi::stri_wrap(label, w, normalize = F),
+            stringi::stri_wrap(label, w, normalize = FALSE),
             collapse = "\n"
           )
 
@@ -366,7 +469,7 @@ makeContent.fittexttree <- function(x) {
         # condition that we are trying to grow the text, this will also ensure
         # the text is grown with the best aspect ratio.
         tg$label <- paste(
-          stringi::stri_wrap(label, best_width, normalize = F),
+          stringi::stri_wrap(label, best_width, normalize = FALSE),
           collapse = "\n"
         )
       }

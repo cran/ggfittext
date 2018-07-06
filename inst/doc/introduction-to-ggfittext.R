@@ -113,6 +113,6 @@ tournament <- data.frame(
 ggplot(tournament, aes(x = teamA, y = teamB, fill = game_time_mins,
                        label = venue)) +
   geom_tile() +
-  geom_fit_text(width = 30, height = 15, min.size = 0, reflow = T, grow = T,
-                colour = "white")
+  geom_fit_text(width = grid::unit(30, "mm"), height = grid::unit(15, "mm"), 
+                min.size = 0, reflow = T, grow = T, colour = "white")
 
