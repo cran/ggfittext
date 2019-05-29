@@ -9,9 +9,9 @@ testdata <- data.frame(
 
 context("shrinking text")
 
-test_that("simple plots and options work", {
+test_that("simple plots and options do not produce errors", {
   expect_silent( {
-    ggplot2::ggplot(testdata, ggplot2::aes(
+    p <- ggplot2::ggplot(testdata, ggplot2::aes(
       xmin = xmin,
       xmax = xmax,
       ymin = ymin,
@@ -25,9 +25,10 @@ test_that("simple plots and options work", {
         min.size = 2,
         place = "topright"
       )
+    print(p)
   })
   expect_silent( {
-    ggplot2::ggplot(testdata, ggplot2::aes(
+    p <- ggplot2::ggplot(testdata, ggplot2::aes(
       xmin = xmin,
       xmax = xmax,
       ymin = ymin,
@@ -40,7 +41,9 @@ test_that("simple plots and options work", {
         padding.y = grid::unit(3, "mm"),
         min.size = 2,
         place = "topright"
-      ) })
+      ) 
+    print(p)
+  })
 })
 
 test_that("missing aesthetics and bad options don't work", {
@@ -62,9 +65,9 @@ test_that("missing aesthetics and bad options don't work", {
 
 context("growing text")
 
-test_that("simple plots and options work", {
+test_that("simple plots and options do not produce errors", {
   expect_silent( {
-    ggplot2::ggplot(testdata, ggplot2::aes(
+    p <- ggplot2::ggplot(testdata, ggplot2::aes(
       xmin = xmin,
       xmax = xmax,
       ymin = ymin,
@@ -79,9 +82,10 @@ test_that("simple plots and options work", {
         place = "bottom",
         grow = T
       )
+    print(p)
   })
   expect_silent( {
-    ggplot2::ggplot(testdata, ggplot2::aes(
+    p <- ggplot2::ggplot(testdata, ggplot2::aes(
       xmin = xmin,
       xmax = xmax,
       ymin = ymin,
@@ -96,14 +100,15 @@ test_that("simple plots and options work", {
         place = "bottom",
         grow = T
       )
+    print(p)
   })
 })
 
 context("reflowing text")
 
-test_that("simple plots and options work", {
+test_that("simple plots and options do not produce errors", {
   expect_silent( {
-    ggplot2::ggplot(testdata, ggplot2::aes(
+    p <- ggplot2::ggplot(testdata, ggplot2::aes(
       xmin = xmin,
       xmax = xmax,
       ymin = ymin,
@@ -119,9 +124,10 @@ test_that("simple plots and options work", {
         grow = T,
         reflow = T
       )
+    print(p)
   })
   expect_silent( {
-    ggplot2::ggplot(testdata, ggplot2::aes(
+    p <- ggplot2::ggplot(testdata, ggplot2::aes(
       xmin = xmin,
       xmax = xmax,
       ymin = ymin,
@@ -137,10 +143,11 @@ test_that("simple plots and options work", {
         reflow = T,
         grow = T
       )
+    print(p)
   })
 })
 
-test_that("missing aesthetics and bad options don't work", {
+test_that("missing aesthetics and bad options produce errors", {
   expect_error( {
     p <- ggplot2::ggplot(testdata, ggplot2::aes(
       x = xmin,
@@ -167,17 +174,43 @@ testdata2 <- data.frame(
 
 test_that("numeric 'width' and 'height' parameters are understood", {
   expect_silent( {
-    ggplot2::ggplot(testdata2, ggplot2::aes(
+    p <- ggplot2::ggplot(testdata2, ggplot2::aes(
       x = x,
       y = y,
       label = vehicle
     )) + 
       ggplot2::geom_tile(width = 10, height = 20, fill = "gray") + 
       geom_fit_text(width = 10, height = 20)
+    print(p)
   })
   expect_silent( {
-    ggplot2::ggplot(testdata2, ggplot2::aes(x = x, y = y, label = vehicle)) + 
+    p <- ggplot2::ggplot(testdata2, ggplot2::aes(x = x, y = y, label = vehicle)) + 
       ggplot2::geom_tile(width = 10, height = 20, fill = "gray") + 
       geom_fit_text(width = 10, height = 20, reflow = TRUE)
+    print(p)
   })
 })
+
+context("formatting text")
+
+test_that("a `formatter` argument is accepted", {
+  expect_silent( {
+    library(ggplot2)
+    wiki <- function(x) { paste0(x, " (citation needed)") }
+
+    yeats <- data.frame(
+      xmin = c(0, 4, 6, 4, 4, 5, 5.5, 5,   5,    5.25, 5.25),
+      xmax = c(4, 8, 8, 6, 5, 6, 6,   5.5, 5.25, 5.5,  5.5),
+      ymin = c(0, 4, 0, 0, 2, 3, 2,   2,   2.5,  2.75, 2.5),
+      ymax = c(8, 8, 4, 2, 4, 4, 3,   2.5, 3,    3,    2.75),
+      label = c("Turning", "and", "turning", "in", "the", "widening", "gyre", "the",
+                "falcon", "cannot", "hear")
+    )
+
+    p <- ggplot(yeats, aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax, label =
+                      label)) +
+      geom_rect(colour = "black") +
+      geom_fit_text(grow = T, min.size = 0, formatter = wiki)
+    print(p)
+  } )
+} )

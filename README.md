@@ -2,14 +2,17 @@
 [![Travis-CI Build
 Status](https://travis-ci.org/wilkox/ggfittext.svg?branch=master)](https://travis-ci.org/wilkox/ggfittext)
 [![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/ggfittext)](https://cran.r-project.org/package=ggfittext)
+[![lifecycle](https://img.shields.io/badge/lifecycle-maturing-blue.svg)](https://www.tidyverse.org/lifecycle/#maturing)
 
-**‘ggfittext’ provides a ‘ggplot2’ geom for fitting text inside a box**
+# ggfittext
+
+ggfittext provides a ggplot2 geom for fitting text inside a box
 
 ![](man/figures/README-hero-1.png)<!-- -->
 
-# Installation
+## Installation
 
-Install the release version of ‘ggfittext’ from CRAN:
+Install the release version of ggfittext from CRAN:
 
 ``` r
 install.packages("ggfittext")
@@ -21,16 +24,16 @@ If you want the development version, install it from GitHub:
 devtools::install_github("wilkox/ggfittext")
 ```
 
-# Fitting text inside a box
+## Fitting text inside a box
 
-Sometimes you want to draw some text in a ‘ggplot2’ plot so that it fits
+Sometimes you want to draw some text in a ggplot2 plot so that it fits
 inside a defined area. For example, you might want to label tiles in a
 heat map without letting the labels spill over into other tiles; or you
 might want to constrain some point labels to imaginary boxes so they
 don’t get too big. It’s possible to achieve this by manually fiddling
 with the text size, but this is both tedious and un-reproducible.
 
-‘ggfittext’ provides a special geom called `geom_fit_text()` that
+ggfittext provides a special geom called `geom_fit_text()` that
 automates fitting text inside a box. It works more or less like
 `ggplot2::geom_text()`, but provides some additional aesthetics and
 options that let you specify the box in which the text is to fit and how
@@ -62,17 +65,25 @@ ggplot(flyers, aes(label = vehicle, xmin = xmin, xmax = xmax, ymin = ymin,
 
 ![](man/figures/README-doesnt_fit-1.png)<!-- -->
 
-You can define the width of the box with either `xmin` and `xmax`
-aesthetics, or alternatively with `x` (for the horizontal centre of the
-box) and a `width` argument (a `grid::unit()` object, defaulting to 40
-mm). Likewise, you can use either `ymin` and `ymax` or `y` and `height`.
-The `x` and `y` aesthetics can be useful when using a discrete axis.
+There are three different ways to define the box in which you want the
+text to be placed:
+
+1.  On a continuous axis, you can use `xmin`/`xmax` and/or `ymin`/`ymax`
+    aesthetics.
+2.  Alternatively on a continuous axis, you can define the horizontal
+    and/or vertical centre of the box with `x` and/or `y` respectively,
+    and fix the width and/or height of the box with the `width` and/or
+    `height` arguments. The values for `width` and `height` should be
+    `grid::unit()` objects; if not, they will be assumed to use the
+    native axis scale.
+3.  On a discrete (categorical) axis, `geom_fit_text()` will
+    automatically figure out the appropriate width or height. You can
+    override this with the `width` or `height` arguments if you want.
 
 You can specify where in the box to place the text with the `place`
 argument, and a minimum point size for the text with the `min.size`
 argument. (Any text that would need to be smaller than `min.size` to fit
-the box will be
-hidden.)
+the box will be hidden.)
 
 ``` r
 ggplot(flyers, aes(label = vehicle, xmin = xmin, xmax = xmax, ymin = ymin,
@@ -95,8 +106,7 @@ midpoint of any side (‘bottom’, ‘left’, …), as well as the default
 # Growing text
 
 With the `grow = TRUE` argument, text will be made to fill the box
-completely, whether that requires growing or shrinking
-it.
+completely, whether that requires growing or shrinking it.
 
 ``` r
 ggplot(flyers, aes(label = vehicle, xmin = xmin, xmax = xmax, ymin = ymin, 
@@ -104,14 +114,14 @@ ggplot(flyers, aes(label = vehicle, xmin = xmin, xmax = xmax, ymin = ymin,
   geom_rect() +
   geom_text(data = subset(flyers, geom == "geom_text"),
             aes(x = (xmin + xmax) / 2, y = (ymin + ymax) / 2)) +
-  geom_fit_text(data = subset(flyers, geom == "geom_fit_text"), grow = T) +
+  geom_fit_text(data = subset(flyers, geom == "geom_fit_text"), grow = TRUE) +
   facet_wrap( ~ geom, ncol = 1) +
   labs(x = "", y = "")
 ```
 
 ![](man/figures/README-geom_fit_text_3-1.png)<!-- -->
 
-# Reflowing text
+## Reflowing text
 
 With the `reflow = TRUE` argument, text will be reflowed (wrapped) as
 needed to fit the box. Reflowing is preferred to shrinking; that is, if
@@ -184,7 +194,7 @@ ggplot(film, aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax,
 
 ![](man/figures/README-reflow_and_grow-1.png)<!-- -->
 
-# Example: a heatmap
+## Example: a heatmap
 
 ``` r
 tournament <- data.frame(
@@ -196,15 +206,14 @@ tournament <- data.frame(
   venue = sample(c("Night Vale Stadium", "Big Rico's Sandlot With The Lot",
                    "Elementary School Playground",
                    "Night Vale Harbor and Waterfront Recreation Area"),
-                 9, replace = T),
+                 9, replace = TRUE),
   game_time_mins = sample(999, 9)
   )
 
 ggplot(tournament, aes(x = teamA, y = teamB, fill = game_time_mins,
                        label = venue)) +
   geom_tile() +
-  geom_fit_text(width = grid::unit(35, "mm"), height = grid::unit(25, "mm"), 
-                min.size = 0, reflow = T, grow = T, colour = "white")
+  geom_fit_text(reflow = TRUE, grow = TRUE, colour = "white")
 ```
 
 ![](man/figures/README-heatmap-1.png)<!-- -->

@@ -1,77 +1,84 @@
 #' A 'ggplot2' geom to fit text inside a box
 #'
-#' \code{geom_fit_text} shrinks, grows or wraps text to fit inside a defined
+#' `geom_fit_text()` shrinks, grows or wraps text to fit inside a defined
 #' rectangular area.
 #'
 #' @details
 #'
-#' Except where noted, \code{geom_fit_text} behaves more or less like
-#' \code{ggplot2::geom_text}.
+#' Except where noted, `geom_fit_text()` behaves more or less like
+#' `ggplot2::geom_text()`.
 #'
-#' In addition to the normal \code{geom_text} aesthetics, \code{geom_fit_text}
-#' requires you to specify the box in which you wish to fit the text, usually
-#' with 'xmin', 'xmax', 'ymin' and 'ymax' aesthetics. Alternatively, you can
-#' specify the centre of the box with 'x' and/or 'y', and the height and/or
-#' width of the box with 'height' and/or 'width' arguments. This can be useful
-#' when one or both axes are discrete. 'height' and 'width' should be provided
-#' as `grid::unit()` objects, and both default to 40 mm.
+#' There are three ways to define the box in which you want the text to be
+#' drawn:
+#' 
+#' 1. On a continuous axis, the limits of the box can be defined in the data
+#' using plot aesthetics: 'xmin' and 'xmax', and/or 'ymin' and 'ymax'.
+#' 2. Alternatively on a continuous axis, the centre of the box can be defined
+#' in the data with the 'x' and/or 'y' aesthetic, and the width and/or height
+#' of the box can be specified with a 'width' and/or 'height' argument. 'width'
+#' and 'height' should be provided as `grid::unit()` objects; if not, they will
+#' be assumed to use the native axis scale.
+#' 3. On a discrete (categorical) axis, the width or height will be determined
+#' automatically. This can be overridden if you wish using the 'width' and
+#' 'height' arguments.
 #'
-#' By default, the text will be drawn as if with \code{geom_text}, unless it is
+#' By default, the text will be drawn as if with `geom_text()`, unless it is
 #' too big for the box, in which case it will be shrunk to fit the box. With
-#' \code{grow = TRUE}, the text will be made to fill the box completely whether
+#' `grow = TRUE`, the text will be made to fill the box completely whether
 #' that requires shrinking or growing.
 #'
-#' \code{reflow = TRUE} will cause the text to be reflowed (wrapped) to better
-#' fit in the box. When \code{grow = FALSE} (default), text that fits the box
-#' will be drawn as if with \code{geom_text}; text that doesn't fit the box will
-#' be reflowed until it does. If the text cannot be made to fit by reflowing
-#' alone, it will be reflowed to match the aspect ratio of the box as closely as
-#' possible, then be shrunk to fit the box. When \code{grow = TRUE}, the text
-#' will be reflowed to best match the aspect ratio of the box, then made to fill
-#' the box completely whether that requires growing or shrinking. Existing line
-#' breaks ('\\n') in the text will be respected when reflowing.
+#' `reflow = TRUE` will cause the text to be reflowed (wrapped) to better fit
+#' in the box. When `grow = FALSE` (default), text that fits the box will be
+#' drawn as if with `geom_text()`; text that doesn't fit the box will be
+#' reflowed until it does. If the text cannot be made to fit by reflowing
+#' alone, it will be reflowed to match the aspect ratio of the box as closely
+#' as possible, then be shrunk to fit the box. When `grow = TRUE`, the text
+#' will be reflowed to best match the aspect ratio of the box, then made to
+#' fill the box completely whether that requires growing or shrinking. Existing
+#' line breaks in the text will be respected when reflowing.
 #'
 #' @section Aesthetics:
 #'
-#' \itemize{
-#'   \item label (required)
-#'   \item xmin, xmax OR x (required)
-#'   \item ymin, ymax OR y (required)
-#'   \item alpha
-#'   \item angle
-#'   \item colour
-#'   \item family
-#'   \item fontface
-#'   \item lineheight
-#'   \item size
-#' }
+#' - label (required)
+#' - (xmin AND xmax) OR x (required)
+#' - (ymin AND ymax) OR y (required)
+#' - alpha
+#' - angle
+#' - colour
+#' - family
+#' - fontface
+#' - lineheight
+#' - size
 #'
 #' @param padding.x,padding.y Amount of horizontal and vertical padding around
-#' the text, expressed as \code{grid::unit()} objects. Default to 1 mm and 0.1
+#' the text, expressed as `grid::unit()` objects. Default to 1 mm and 0.1
 #' lines respectively.
 #' @param min.size Minimum font size, in points. If provided, text that would
 #' need to be shrunk below this size to fit the box will not be drawn. Defaults
 #' to 4 pt.
 #' @param place Where inside the box to place the text. Default is 'centre';
 #' other options are 'topleft', 'top', 'topright', etc.
-#' @param grow If 'TRUE', text will be grown as well as shrunk to fill the box.
+#' @param grow If `TRUE`, text will be grown as well as shrunk to fill the box.
 #' See Details.
-#' @param reflow If 'TRUE', text will be reflowed (wrapped) to better fit the
+#' @param reflow If `TRUE`, text will be reflowed (wrapped) to better fit the
 #' box. See Details.
-#' @param width,height When using `x` and/or `y` aesthetics, these will be used
-#' to determine the width and/or height of the box. These should be
-#' either numeric values on the \code{x} and \code{y} scales or
-#' \code{grid::unit()} objects. Both default to 40 mm units.
-#' @param mapping \code{ggplot2::aes()} object as standard in 'ggplot2'. Note
+#' @param width,height When using `x` and/or `y` aesthetics, these can be used
+#' to set the width and/or height of the box. These should be either
+#' numeric values on the `x` and `y` scales or `grid::unit()` objects.
+#' @param formatter A function that will be applied to the text before it is
+#' drawn. This can be useful when using `geom_fit_text()` in an automated
+#' context, such as with the 'gganimate' package. `formatter` will be applied
+#' serially to each element in the `label` column, so it does not need to be a
+#' vectorised function.
+#' @param mapping `ggplot2::aes()` object as standard in 'ggplot2'. Note
 #' that aesthetics specifying the box must be provided. See Details.
 #' @param data,stat,position,na.rm,show.legend,inherit.aes,... Standard geom
-#' arguments as for \code{ggplot2::geom_text()}.
+#' arguments as for `ggplot2::geom_text()`.
 #'
 #' @examples
 #'
 #' ggplot2::ggplot(ggplot2::presidential, ggplot2::aes(ymin = start, ymax = end,
-#'     label = name, fill = party, xmin = 0, xmax = 1)) +
-#'   ggplot2::geom_rect(colour = 'black') +
+#'     label = name, x = party)) +
 #'   geom_fit_text(grow = TRUE)
 #'
 #' @export
@@ -89,8 +96,9 @@ geom_fit_text <- function(
   min.size = 4,
   grow = FALSE,
   reflow = FALSE,
-  width = grid::unit(40, "mm"),
-  height = grid::unit(40, "mm"),
+  width = NULL,
+  height = NULL,
+  formatter = NULL,
   ...
 ) {
   ggplot2::layer(
@@ -111,6 +119,7 @@ geom_fit_text <- function(
       reflow = reflow,
       width = width,
       height = height,
+      formatter = formatter,
       ...
     )
   )
@@ -135,41 +144,13 @@ GeomFitText <- ggplot2::ggproto(
     xmin = NULL,
     xmax = NULL,
     ymin = NULL,
-    ymax = NULL,
-    width = NULL,
-    height = NULL
+    ymax = NULL
   ),
-  setup_params = function(
-    params
-  ) {
 
-    # Check that width and height are `grid::unit()` objects
-    if(! class(params$width) == "unit" & !is.numeric(params$width)) {
-      stop("'width' should be numeric or a `grid::unit()` object",
-           .call = FALSE
-      )
-    }
-    if(! class(params$height) == "unit" & !is.numeric(params$height)) {
-      stop("'height' should be numeric or a `grid::unit()` object",
-           .call = FALSE
-      )
-    }
-
-    params
-
-  },
   setup_data = function(
     data,
     params
   ) {
-
-    # Warn about deprecated width and height aesthetics
-    if ("width" %in% names(data)) {
-      warning("`width` is now an argument, not an aesthetic, and will be removed in a future version")
-    }
-    if ("height" %in% names(data)) {
-      warning("`height` is now an argument, not an aesthetic, and will be removed in a future version")
-    }
 
     # Check that valid aesthetics have been supplied for each dimension
     if (!(
@@ -191,26 +172,44 @@ GeomFitText <- ggplot2::ggproto(
       )
     }
 
-    # If 'width' is not a unit, then interpret it as a numeric on the x scale
-    if (is.null(data$xmin) & 
-        is.null(data$xmax) & 
-        class(params$width) != "unit") {
+    # If 'width' is provided, but not as unit, interpret it as a numeric on the
+    # x scale
+    if ((! is.null(params$width)) & class(params$width) != "unit") {
       data$xmin <- data$x - params$width / 2
       data$xmax <- data$x + params$width / 2
     }
 
-    # If 'height' is not a unit, then interpret it as a numeric on the y scale
-    if (is.null(data$ymin) & 
-        is.null(data$ymax) & 
-        class(params$height) != "unit") {
+    # If 'height' is provided, but not a unit, interpret it as a numeric on the
+    # y scale
+    if ((! is.null(params$height)) & class(params$height) != "unit") {
       data$ymin <- data$y - params$height / 2
       data$ymax <- data$y + params$height / 2
+    }
+
+    # If neither a 'width' parameter nor xmin/xmax aesthetics have been
+    # provided, infer the width using the method of geom_boxplot
+    if (is.null(params$width) & ! "xmin" %in% names(data)) {
+      data$width <- ggplot2::resolution(data$x, FALSE) * 0.9
+      data$xmin <- data$x - data$width / 2
+      data$xmax <- data$x + data$width / 2
+      data$width <- NULL
+    }
+
+    # If neither a 'height' parameter nor ymin/ymax aesthetics have been
+    # provided, infer the height using the method of geom_boxplot
+    if (is.null(params$height) & ! "ymin" %in% names(data)) {
+      data$height <- ggplot2::resolution(data$y, FALSE) * 0.9
+      data$ymin <- data$y - data$height / 2
+      data$ymax <- data$y + data$height / 2
+      data$height <- NULL
     }
 
     data
 
   },
+
   draw_key = ggplot2::draw_key_text,
+
   draw_panel = function(
     data,
     panel_scales,
@@ -222,10 +221,29 @@ GeomFitText <- ggplot2::ggproto(
     reflow = FALSE,
     width = grid::unit(40, "mm"),
     height = grid::unit(40, "mm"),
+    formatter = NULL,
     place = "centre"
   ) {
 
     data <- coord$transform(data, panel_scales)
+
+    # If a 'formatter' was provided
+    if (! is.null(formatter)) {
+
+      # Check that 'formatter' is a function
+      if (! is.function(formatter)) {
+        stop("`formatter` must be a function")
+      }
+
+      # Apply formatter to the labels, checking that the output is a character
+      # vector of the correct length
+      formatted_labels <- sapply(data$label, formatter, USE.NAMES = FALSE)
+      if ((! length(formatted_labels) == length(data$label)) | 
+          (! is.character(formatted_labels))) {
+        stop("`formatter` must produce a character vector of same length as input")
+      }
+      data$label <- formatted_labels
+    }
 
     gt <- grid::gTree(
       data = data,
@@ -249,17 +267,6 @@ GeomFitText <- ggplot2::ggproto(
 makeContent.fittexttree <- function(x) {
 
   data <- x$data
-
-  # For backwards compatibility, if a 'width' or 'height' was provided in the
-  # data, convert to 'width' or 'height' parameters (assuming in mm) TODO this
-  # should be removed in a future version when width and height aesthetics are
-  # completely deprecated
-  if ("width" %in% names(data)) {
-    x$width <- grid::unit(data$width[1], "mm")
-  }
-  if ("height" %in% names(data)) {
-    x$height <- grid::unit(data$height[1], "mm")
-  }
 
   # Determine which aesthetics to use for the bounding box
   # Rules: if xmin/xmax are available, use these in preference to x UNLESS

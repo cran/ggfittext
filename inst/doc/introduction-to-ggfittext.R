@@ -38,7 +38,7 @@ ggplot(flyers, aes(label = vehicle, xmin = xmin, xmax = xmax, ymin = ymin,
   geom_rect() +
   geom_text(data = subset(flyers, geom == "geom_text"),
             aes(x = (xmin + xmax) / 2, y = (ymin + ymax) / 2)) +
-  geom_fit_text(data = subset(flyers, geom == "geom_fit_text"), grow = T) +
+  geom_fit_text(data = subset(flyers, geom == "geom_fit_text"), grow = TRUE) +
   facet_wrap( ~ geom, ncol = 1) +
   labs(x = "", y = "")
 
@@ -96,7 +96,7 @@ ggplot(film, aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax,
   labs(x = "", y = "") +
   facet_wrap(~ fit, ncol = 1)
 
-## ----heatmap, fig.width = 7----------------------------------------------
+## ----heatmap, fig.width = 8----------------------------------------------
 tournament <- data.frame(
   teamA = rep(c("Radon Canyon Raiders", "Desert Bluffs Destroyers",
                 "Old Town Orphans"), 3),
@@ -106,13 +106,12 @@ tournament <- data.frame(
   venue = sample(c("Night Vale Stadium", "Big Rico's Sandlot With The Lot",
                    "Elementary School Playground",
                    "Night Vale Harbor and Waterfront Recreation Area"),
-                 9, replace = T),
+                 9, replace = TRUE),
   game_time_mins = sample(999, 9)
   )
 
 ggplot(tournament, aes(x = teamA, y = teamB, fill = game_time_mins,
                        label = venue)) +
   geom_tile() +
-  geom_fit_text(width = grid::unit(30, "mm"), height = grid::unit(15, "mm"), 
-                min.size = 0, reflow = T, grow = T, colour = "white")
+  geom_fit_text(reflow = TRUE, grow = TRUE, colour = "white")
 
