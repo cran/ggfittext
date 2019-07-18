@@ -1,3 +1,13 @@
+# ggfittext 0.8.1
+
+## Minor changes
+
+- Add 'vdiffr' test cases
+
+## Bug fixes
+
+- Fix bug where a blank label causes an error
+
 # ggfittext 0.8.0
 
 ## Major changes
