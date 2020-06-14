@@ -6,7 +6,7 @@ Status](https://travis-ci.org/wilkox/ggfittext.svg?branch=master)](https://travi
 
 # ggfittext
 
-ggfittext provides a ggplot2 geom for fitting text inside a box
+ggfittext provides a ggplot2 geom for fitting text into boxes.
 
 ![](man/figures/README-hero-1.png)<!-- -->
 
@@ -146,6 +146,24 @@ and/or `height` arguments, which should be `grid::unit()` objects. The
 horizontal and/or vertical centre of the box will be defined by `x`
 and/or `y`.
 
+## Experimental feature: text in polar coordinates
+
+Text can be drawn in polar coordinates with `geom_fit_text()` simply by
+adding `coord_polar()` to the plot. This feature is experimental and
+currently only in the development version; any bug reports are very
+welcome.
+
+``` r
+ggplot(gold, aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax, 
+                 fill = line, label = label)) +
+  coord_polar() +
+  geom_rect() +
+  geom_fit_text(min.size = 0, grow = TRUE) +
+  scale_fill_gradient(low = "#fee391", high = "#238443")
+```
+
+![](man/figures/README-unnamed-chunk-12-1.png)<!-- -->
+
 ## Other useful arguments
 
 All arguments to `geom_fit_text()` can also be used with
@@ -162,7 +180,7 @@ ggplot(animals, aes(x = type, y = flies, fill = mass, label = animal)) +
   geom_fit_text(reflow = TRUE, grow = TRUE, contrast = TRUE)
 ```
 
-![](man/figures/README-unnamed-chunk-12-1.png)<!-- -->
+![](man/figures/README-unnamed-chunk-13-1.png)<!-- -->
 
   - **`padding.x`** and **`padding.y`** can be used to set the padding
     between the text and the edge of the box. By default this is 1 mm.
@@ -174,7 +192,7 @@ ggplot(animals, aes(x = type, y = flies, fill = mass, label = animal)) +
     and must be shrunk smaller than `min.size` to fit in the box will be
     flipped to the outside of the box (if it fits there). This is mostly
     useful for drawing text inside bars in a bar plot, so it is `TRUE`
-    by default for `geom_bar_text()`.
+    by default for `geom_bar_text()` when `position = "stacked"`.
   - **`hjust`** and **`vjust`** set the horizontal and vertical
     justification of the text, scaled between 0 (left/bottom) and 1
     (right/top). These are both 0.5 by default.
@@ -185,9 +203,13 @@ ggplot(animals, aes(x = type, y = flies, fill = mass, label = animal)) +
   - **`fullheight`** is automatically set depending on place, but can be
     overridden with this option. This is used to determine the bounding
     box around the text. If `FALSE`, the bounding box includes the
-    x-height of the text and descenders, but not any descenders. If
-    TRUE, it extends from the top of the ascenders to the bottom of the
+    x-height of the text and ascenders, but not any descenders. If TRUE,
+    it extends from the top of the ascenders to the bottom of the
     descenders. This is mostly useful in situations where you want to
     ensure the baseline of text is consistent between labels
-    (`fullheight = TRUE`), or when you want to avoid descenders spilling
-    out of the bounding box (`fullheight = FALSE`).
+    (`fullheight = FALSE`), or when you want to avoid descenders
+    spilling out of the bounding box (`fullheight = TRUE`).
+
+![](man/figures/README-unnamed-chunk-14-1.png)<!-- -->
+
+![](man/figures/README-unnamed-chunk-15-1.png)<!-- -->

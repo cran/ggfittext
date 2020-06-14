@@ -1,3 +1,34 @@
+# ggfittext 0.9.0
+
+## Major changes
+
+- Add experimental support for polar coordinates in `geom_fit_text()`
+- Improvements to the behaviour of `geom_bar_text()` in flipped coordinates,
+  including support for the new bi-directional `geom_col()` in ggplot2 3.3.0
+  (#23, thanks @ds-jim)
+
+## Minor changes
+
+- `contrast = TRUE` now assumes ggplot2 default colours for `fill` and
+  `panel.background`, so it can be used in the absence of a `fill` aesthetic.
+- Change default behaviour of `contrast` in `geom_bar_text()`; instead of
+  defaulting to TRUE, it defaults to true if the text colour is black but to
+  FALSE otherwise (#22, thanks @ds-jim)
+- `geom_bar_text()` now defaults to `contrast = TRUE`
+- `outside` now defaults to FALSE with `geom_bar_text()` unless `position =
+  "identity"`
+- Add visual examples for `fullheight`
+
+## Bug fixes
+
+- Silently ignore NA values of 'label' rather than stopping with an error
+- Skip drawing text when the box limits are outside the plot limits and emit a
+  warning, rather than stopping with an error (see #11, thanks
+  @alastairrushworth)
+- Fix 'Ignoring unknown aesthetics: fill' error (#19, thanks @zilch42)
+- Clarify defaults for `min.size` argument
+- Fix bug when using grid units for height or width
+
 # ggfittext 0.8.1
 
 ## Minor changes

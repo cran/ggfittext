@@ -117,6 +117,21 @@ Alternatively, you can set the width and/or height with the `width` and/or
 `height` arguments, which should be `grid::unit()` objects. The horizontal
 and/or vertical centre of the box will be defined by `x` and/or `y`.
 
+## Experimental feature: text in polar coordinates
+
+Text can be drawn in polar coordinates with `geom_fit_text()` simply by adding
+`coord_polar()` to the plot. This feature is experimental and currently only in
+the development version; any bug reports are very welcome.
+
+```{r, fig.width = 4, fig.height = 4}
+ggplot(gold, aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax, 
+                 label = label, fill = line)) +
+  geom_rect() +
+  coord_polar() +
+  geom_fit_text(min.size = 0, grow = TRUE) +
+  scale_fill_gradient(low = "#fee391", high = "#238443")
+```
+
 ## Other useful arguments
 
 All arguments to `geom_fit_text()` can also be used with `geom_bar_text()`.
@@ -149,8 +164,24 @@ ggplot(animals, aes(x = type, y = flies, fill = mass, label = animal)) +
 - **`fullheight`** is automatically set depending on place, but can be
   overridden with this option. This is used to determine the bounding box
   around the text. If `FALSE`, the bounding box includes the x-height of the
-  text and descenders, but not any descenders. If TRUE, it extends from the top
+  text and ascenders, but not any descenders. If TRUE, it extends from the top
   of the ascenders to the bottom of the descenders. This is mostly useful in
   situations where you want to ensure the baseline of text is consistent
-  between labels (`fullheight = TRUE`), or when you want to avoid descenders
-  spilling out of the bounding box (`fullheight = FALSE`).
+  between labels (`fullheight = FALSE`), or when you want to avoid descenders
+  spilling out of the bounding box (`fullheight = TRUE`).
+
+```{r echo = FALSE, fig.width = 4, fig.height = 0.5}
+ggplot(data.frame(label = "fullheight = TRUE", xmin = 0.25, xmax = 0.75, ymin = 0.25, ymax = 0.75), 
+       aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax, label = label)) +
+  geom_rect() +
+  geom_fit_text(grow = TRUE, fullheight = TRUE, family = "mono") +
+  theme(axis.text = element_blank(), axis.ticks = element_blank(), panel.background = element_blank(), plot.title = element_text(hjust = 0.5))
+```
+
+```{r echo = FALSE, fig.width = 4, fig.height = 0.5}
+ggplot(data.frame(label = "fullheight = FALSE", xmin = 0.25, xmax = 0.75, ymin = 0.25, ymax = 0.75), 
+       aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax, label = label)) +
+  geom_rect() +
+  geom_fit_text(grow = TRUE, fullheight = FALSE, family = "mono") +
+  theme(axis.text = element_blank(), axis.ticks = element_blank(), panel.background = element_blank(), plot.title = element_text(hjust = 0.5))
+```

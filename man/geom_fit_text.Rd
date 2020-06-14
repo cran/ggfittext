@@ -5,21 +5,55 @@
 \alias{geom_fit_text}
 \title{A 'ggplot2' geom to fit text inside a box}
 \usage{
-geom_bar_text(mapping = NULL, data = NULL, stat = "identity",
-  position = "identity", na.rm = FALSE, show.legend = NA,
-  inherit.aes = TRUE, padding.x = grid::unit(1, "mm"),
-  padding.y = grid::unit(1, "mm"), min.size = 8, place = "top",
-  grow = FALSE, reflow = FALSE, hjust = NULL, vjust = NULL,
-  fullheight = NULL, width = NULL, height = NULL, formatter = NULL,
-  contrast = FALSE, outside = TRUE, ...)
+geom_bar_text(
+  mapping = NULL,
+  data = NULL,
+  stat = "identity",
+  position = "identity",
+  na.rm = FALSE,
+  show.legend = NA,
+  inherit.aes = TRUE,
+  padding.x = grid::unit(1, "mm"),
+  padding.y = grid::unit(1, "mm"),
+  min.size = 8,
+  place = NULL,
+  grow = FALSE,
+  reflow = FALSE,
+  hjust = NULL,
+  vjust = NULL,
+  fullheight = NULL,
+  width = NULL,
+  height = NULL,
+  formatter = NULL,
+  contrast = NULL,
+  outside = NULL,
+  ...
+)
 
-geom_fit_text(mapping = NULL, data = NULL, stat = "identity",
-  position = "identity", na.rm = FALSE, show.legend = NA,
-  inherit.aes = TRUE, padding.x = grid::unit(1, "mm"),
-  padding.y = grid::unit(1, "mm"), min.size = 4, place = "centre",
-  outside = FALSE, grow = FALSE, reflow = FALSE, hjust = NULL,
-  vjust = NULL, fullheight = NULL, width = NULL, height = NULL,
-  formatter = NULL, contrast = FALSE, ...)
+geom_fit_text(
+  mapping = NULL,
+  data = NULL,
+  stat = "identity",
+  position = "identity",
+  na.rm = FALSE,
+  show.legend = NA,
+  inherit.aes = TRUE,
+  padding.x = grid::unit(1, "mm"),
+  padding.y = grid::unit(1, "mm"),
+  min.size = 4,
+  place = "centre",
+  outside = FALSE,
+  grow = FALSE,
+  reflow = FALSE,
+  hjust = NULL,
+  vjust = NULL,
+  fullheight = NULL,
+  width = NULL,
+  height = NULL,
+  formatter = NULL,
+  contrast = FALSE,
+  ...
+)
 }
 \arguments{
 \item{mapping}{\code{ggplot2::aes()} object as standard in 'ggplot2'. Note
@@ -32,12 +66,14 @@ arguments as for \code{ggplot2::geom_text()}.}
 expressed in \code{grid::unit()} objects. Both default to 1 mm.}
 
 \item{min.size}{Minimum font size, in points. Text that would need to be
-shrunk below this size to fit the box will be hidden. Defaults to 4 pt.}
+shrunk below this size to fit the box will be hidden. Defaults to 4 pt (8 pt
+for \code{geom_bar_text()})}
 
 \item{place}{Where inside the box to place the text. Default is 'centre';
 other options are 'topleft', 'top', 'topright', 'right', 'bottomright',
 'bottom', 'bottomleft', 'left', and 'center'/'middle' which are both
-synonyms for 'centre'.}
+synonyms for 'centre'. For \code{geom_bar_text()}, will be set heuristically if
+not specified.}
 
 \item{grow}{If \code{TRUE}, text will be grown as well as shrunk to fill the box.
 Defaults to FALSE.}
@@ -66,12 +102,14 @@ not need to be a vectorised function.}
 
 \item{contrast}{If \code{TRUE} and in combination with a \code{fill} aesthetic, the
 colour of the text will be inverted for better contrast against dark
-background fills. \code{FALSE} by default.}
+background fills. \code{FALSE} by default for \code{geom_fit_text()}, set
+heuristically for \code{geom_bar_text()}.}
 
 \item{outside}{If \code{TRUE}, text placed in one of 'top', 'right', 'bottom' or
 'left' that would need to be shrunk smaller than \code{min.size} to fit the box
 will be drawn outside the box if possible. This is mostly useful for drawing
-text inside bar/column geoms. Defaults to FALSE.}
+text inside bar/column geoms. Defaults to TRUE for \code{position = "identity"}
+when using \code{geom_bar_text()}, otherwise FALSE.}
 }
 \description{
 \code{geom_fit_text()} shrinks, grows and wraps text to fit inside a defined
@@ -106,6 +144,10 @@ requires shrinking or growing.
 in the box. If the text cannot be made to fit by reflowing alone, it will be
 reflowed then shrunk to fit the box.  Existing line breaks in the text will
 be respected when reflowing.
+
+\code{geom_fit_text()} includes experimental support for drawing text in polar
+coordinates (by adding \code{coord_polar()} to the plot), however not all
+features are available when doing so.
 }
 \section{Aesthetics}{
 
