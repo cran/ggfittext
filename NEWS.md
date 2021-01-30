@@ -1,3 +1,20 @@
+# ggfittext 0.9.1
+
+## Minor changes
+
+- Various minor copy-editing changes to the README and introductory vignette
+- `coffees` data frame renamed to `beverages`, some other minor changes to
+  example data frames
+- Change the heuristic for selecting between 'xmin/xmax' and 'width' (or
+  'ymin/ymax' and 'height'), as it was causing a bug with zero-height boxes
+  (#26)
+
+## Bug fixes
+
+- Make vdiffr tests conditional
+- Give a warning, rather than stop with an error, when the `contrast = TRUE`
+  argument is used and the fill value is NA
+
 # ggfittext 0.9.0
 
 ## Major changes

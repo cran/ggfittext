@@ -344,15 +344,8 @@ makeContent.fittexttree <- function(x) {
   if (is.null(x$contrast)) x$contrast <- FALSE
   if (is.null(x$outside)) x$outside <- FALSE
 
-  # Determine which aesthetics to use for the bounding box
-  # Rules: if xmin/xmax are available, use these in preference to x UNLESS
-  # xmin == xmax, because this probably indicates position = "stack"; in this
-  # case, use x if it is available
-
-  # If xmin/xmax are not provided, or all xmin == xmax, generate boundary box
-  # from width
-  if (!("xmin" %in% names(data)) |
-      (identical(data$xmin, data$xmax) & "x" %in% names(data))) {
+  # If xmin/xmax are not provided, generate boundary box from width
+  if (!("xmin" %in% names(data))) {
     data$xmin <- data$x - (
       grid::convertWidth(
         grid::unit(x$width, "mm"),
@@ -369,11 +362,8 @@ makeContent.fittexttree <- function(x) {
     )
   }
 
-  # If ymin/ymax are not provided, or all ymin == ymax, generate boundary box
-  # from height
-  if (!("ymin" %in% names(data)) |
-      (identical(data$ymin, data$ymax) &
-       "y" %in% names(data))) {
+  # If ymin/ymax are not provided, generate boundary box from height
+  if (!("ymin" %in% names(data))) {
     data$ymin <- data$y - (
       grid::convertHeight(
         grid::unit(x$height, "mm"),
@@ -418,12 +408,32 @@ makeContent.fittexttree <- function(x) {
       return(grid::nullGrob())
     }
 
-    # Reverse colours if desired
+    # If contrast is set, and the shade of the text colour is too close to the
+    # shade of the fill colour, change the text colour to its complement
     if (x$contrast) {
+
+      # If the fill is NA, emit a warning and set background to the default
+      # ggplot2 grey
+      if ("fill" %in% names(text)) {
+        if (is.na(text$fill)) {
+          warning(
+            "For label '", 
+            text$label, 
+            "', trying to contrast text against a fill of 'NA'",
+            call. = FALSE
+          )
+          text$fill <- "grey35"
+        }
+      }
+
+      # If the text colour is NA, set to black
+      if (is.na(text$colour)) text$colour <- "black"
+
       # If contrast is set but there is no fill aesthetic, assume the default
       # ggplot2 dark grey fill
       bg_colour <- ifelse("fill" %in% names(text), text$fill, "grey35")
       text_colour <- ifelse("colour" %in% names(text), text$colour, "black")
+
       if (abs(shades::lightness(bg_colour) - shades::lightness(text_colour)) < 50) {
         complement <- shades::complement(shades::shade(text_colour))
         text$colour <- as.character(complement)
