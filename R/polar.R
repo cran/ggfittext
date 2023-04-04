@@ -185,18 +185,58 @@ makeContent.fittexttreepolar <- function(x) {
       theta <- text$xmax - (deg2rad(sum(char_arcs)) / 2) - padding.x.arcrad
     }
 
+    # check if need to flip (angle == 180)
+    flip <- x$flip
+
+    if (flip) {
+      flip <- rad2deg(theta) > 90 && rad2deg(theta) < 270
+    }
+
+    # If flipping, over-write necessary strings
+    if (flip) {
+      # Reverse the string
+      text$label <- strrev(as.character(text$label))
+
+      # re-calc string positions
+      chars <- strsplit(as.character(text$label), "")[[1]]
+      char_widths <- (grid::calcStringMetric(chars)$width / 
+                        sum(grid::calcStringMetric(chars)$width)) * tgdim$width
+
+      # char_arcs = arcwidth of each character, in degrees
+      char_arcs <- 360 * char_widths / c
+
+      # padding.x.arcrad = the arcwidth of padding.x, expressed in radians, at
+      # the anchor radius
+      padding.x.arcrad <- (padding.x / c) * 2 * pi
+
+      # theta = the theta of the text anchor for the entire label in the
+      # coordinate system, initial calculated in radians
+      if (x$place %in% c("bottomleft", "left", "topleft")) {
+        theta <- text$xmin + (deg2rad(sum(char_arcs)) / 2) + padding.x.arcrad
+      } else if (x$place %in% c("bottom", "centre", "top")) {
+        theta <- ifelse(
+          text$xmax > text$xmin,
+          (text$xmin + text$xmax) / 2,
+          (text$xmin + text$xmax + pi + pi) / 2
+        )
+      } else if (x$place %in% c("bottomright", "right", "topright")) {
+        theta <- text$xmax - (deg2rad(sum(char_arcs)) / 2) - padding.x.arcrad
+      }
+    }
+
+
     # angle = ?? I can't even remember what this is supposed to do but it
     # works. Converting from radians to degrees with some sort of correction?
     angle <- 450 - rad2deg(theta)
 
     # char_thetas = theta position of the anchors for each character (assuming
     # hjust = 0.5 for the textGrob representing this character), in degrees
-    lag_vector <- function(x) c(0, x[1:length(x) - 1])
+    lag_vector <- function(x) c(0, x[seq_along(x) - 1])
     char_thetas <- angle - lag_vector(cumsum(char_arcs)) - 
                      (char_arcs / 2) + (sum(char_arcs) / 2)
 
     # Generate a textGrob for each character
-    tgs <- lapply(1:length(char_thetas), function(i) {
+    tgs <- lapply(seq_along(char_thetas), function(i) {
 
       char <- chars[i]
       theta <- char_thetas[i]
@@ -207,13 +247,18 @@ makeContent.fittexttreepolar <- function(x) {
       y_pos <- r * sin(theta_rad)
       y_pos <- 0.5 + grid::convertHeight(grid::unit(y_pos, "mm"), "npc", TRUE)
 
+      if (flip) {
+        # adjust for 0.8 to take into account 0.2 vjust for nice kerning
+        x$vjust <- 0.8 - x$vjust
+      }
+
       tg <- grid::textGrob(
         label = char,
         x = x_pos,
         y = y_pos,
         hjust = x$hjust,
         vjust = x$vjust,
-        rot = theta - 90,
+        rot = theta - 90 + 180 * flip,
         default.units = "npc",
         gp = grid::gpar(
           fontsize = tg$gp$fontsize,

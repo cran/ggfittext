@@ -45,6 +45,11 @@ ggplot(presidential, aes(ymin = start, ymax = end, x = party, label = name)) +
   geom_errorbar(alpha = 0.5)
 
 ## ---- fig.width = 4, fig.height = 4-------------------------------------------
+ggplot(animals_rich, aes(x = type, y = flies, label = animal)) +
+  geom_tile(fill = "white", colour = "black") +
+  geom_fit_text(reflow = TRUE, grow = TRUE, rich = TRUE)
+
+## ---- fig.width = 4, fig.height = 4-------------------------------------------
 ggplot(gold, aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax, 
                  fill = linenumber, label = line)) +
   coord_polar() +

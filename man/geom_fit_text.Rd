@@ -17,6 +17,7 @@ geom_bar_text(
   padding.y = grid::unit(1, "mm"),
   min.size = 8,
   place = NULL,
+  outside = NULL,
   grow = FALSE,
   reflow = FALSE,
   hjust = NULL,
@@ -26,7 +27,7 @@ geom_bar_text(
   height = NULL,
   formatter = NULL,
   contrast = NULL,
-  outside = NULL,
+  rich = FALSE,
   ...
 )
 
@@ -52,6 +53,8 @@ geom_fit_text(
   height = NULL,
   formatter = NULL,
   contrast = FALSE,
+  flip = FALSE,
+  rich = FALSE,
   ...
 )
 }
@@ -74,6 +77,12 @@ other options are 'topleft', 'top', 'topright', 'right', 'bottomright',
 'bottom', 'bottomleft', 'left', and 'center'/'middle' which are both
 synonyms for 'centre'. For \code{geom_bar_text()}, will be set heuristically if
 not specified.}
+
+\item{outside}{If \code{TRUE}, text placed in one of 'top', 'right', 'bottom' or
+'left' that would need to be shrunk smaller than \code{min.size} to fit the box
+will be drawn outside the box if possible. This is mostly useful for drawing
+text inside bar/column geoms. Defaults to TRUE for \code{position = "identity"}
+when using \code{geom_bar_text()}, otherwise FALSE.}
 
 \item{grow}{If \code{TRUE}, text will be grown as well as shrunk to fill the box.
 Defaults to FALSE.}
@@ -105,11 +114,13 @@ colour of the text will be inverted for better contrast against dark
 background fills. \code{FALSE} by default for \code{geom_fit_text()}, set
 heuristically for \code{geom_bar_text()}.}
 
-\item{outside}{If \code{TRUE}, text placed in one of 'top', 'right', 'bottom' or
-'left' that would need to be shrunk smaller than \code{min.size} to fit the box
-will be drawn outside the box if possible. This is mostly useful for drawing
-text inside bar/column geoms. Defaults to TRUE for \code{position = "identity"}
-when using \code{geom_bar_text()}, otherwise FALSE.}
+\item{rich}{If \code{TRUE}, text will be formatted with markdown and HTML markup
+as implemented by \code{gridtext::richtext_grob()}. \code{FALSE} by default. Rich text
+cannot be drawn in polar coordinates. Please note that rich text support is
+\strong{experimental} and breaking changes are likely}
+
+\item{flip}{If \code{TRUE}, when in polar coordinates 'upside-down' text will be
+flipped the 'right way up', to enhance readability.}
 }
 \description{
 \code{geom_fit_text()} shrinks, grows and wraps text to fit inside a defined
@@ -142,7 +153,7 @@ requires shrinking or growing.
 
 \code{reflow = TRUE} will cause the text to be reflowed (wrapped) to better fit
 in the box. If the text cannot be made to fit by reflowing alone, it will be
-reflowed then shrunk to fit the box.  Existing line breaks in the text will
+reflowed then shrunk to fit the box. Existing line breaks in the text will
 be respected when reflowing.
 
 \code{geom_fit_text()} includes experimental support for drawing text in polar

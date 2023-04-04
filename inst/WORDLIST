@@ -7,6 +7,7 @@ fontface
 geoms
 gganimate
 ggplot
+gridtext
 lifecycle
 lineheight
 reflow
@@ -15,6 +16,7 @@ reflowing
 topleft
 topright
 un
+up’
 vdiffr
 xmax
 xmin

@@ -1,3 +1,26 @@
+# ggfittext 0.10.0
+
+## Major changes
+
+- Add 'flip' argument to `geom_fit_text()` to flip text 'the right way up' when
+  in polar coordinates (thanks @BradyAJohnston)
+- Add **experimental** support for rich text, with the `rich` argument to
+  `geom_fit_text()` and `geom_bar_text()`. Uses
+  [gridtext](https://wilkelab.org/gridtext/) to render a subset of Markdown and
+  HTML. This is liable to change and in particular there may be breaking
+  changes as a result of upstream changes in gridtext
+- Move ggplot2 from 'Depends' to 'Imports'
+
+## Minor changes
+
+- Internal refactoring
+- Improvements to the reflowing algorithm, both for speed and aesthetics
+- Make 'label' required aesthetic for `geom_bar_text()` (#29, thanks @gregleleu)
+
+## Bug fixes
+
+- Fix support for bi-directional `geom_col()` (#23, thanks again @ds-jim)
+
 # ggfittext 0.9.1
 
 ## Minor changes

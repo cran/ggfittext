@@ -13,6 +13,7 @@ geom_bar_text <- function(
   padding.y = grid::unit(1, "mm"),
   min.size = 8,
   place = NULL,
+  outside = NULL,
   grow = FALSE,
   reflow = FALSE,
   hjust = NULL,
@@ -22,14 +23,14 @@ geom_bar_text <- function(
   height = NULL,
   formatter = NULL,
   contrast = NULL,
-  outside = NULL,
+  rich = FALSE,
   ...
 ) {
 
   # If position is "identity", outside should be set to TRUE by default;
   # otherwise, set to FALSE
   if (is.null(outside)) {
-    outside = position == "identity"
+    outside <- position == "identity"
   }
 
   ggplot2::layer(
@@ -45,6 +46,7 @@ geom_bar_text <- function(
       padding.x = padding.x,
       padding.y = padding.y,
       place = place,
+      outside = outside,
       min.size = min.size,
       grow = grow,
       reflow = reflow,
@@ -55,7 +57,7 @@ geom_bar_text <- function(
       height = height,
       formatter = formatter,
       contrast = contrast,
-      outside = outside,
+      rich = rich,
       ...
     )
   )
@@ -66,6 +68,7 @@ GeomBarText <- ggplot2::ggproto(
   ggplot2::Geom,
   required_aes = c("x", "y"),
   default_aes = ggplot2::aes(
+    label = NULL,
     alpha = 1,
     angle = 0,
     colour = "black",
@@ -93,7 +96,7 @@ GeomBarText <- ggplot2::ggproto(
 
     # Detect if the bar is to be drawn with 'implied' flipped orientation as
     # permitted in ggplot2 v3.3.0
-    implied_flip <- typeof(data$y) == "integer"
+    implied_flip <- "mapped_discrete" %in% class(data$y)
     data$implied_flip <- implied_flip
 
     # Set bar width using the method of geom_boxplot
@@ -126,7 +129,7 @@ GeomBarText <- ggplot2::ggproto(
 
       # Apply formatter to the labels, checking that the output is a character
       # vector of the correct length
-      formatted_labels <- sapply(data$label, params$formatter, USE.NAMES = FALSE)
+      formatted_labels <- vapply(data$label, params$formatter, character(1), USE.NAMES = FALSE)
       if ((! length(formatted_labels) == length(data$label)) | 
           (! is.character(formatted_labels))) {
         stop("`formatter` must produce a character vector of same length as input")
@@ -146,6 +149,8 @@ GeomBarText <- ggplot2::ggproto(
     padding.x = grid::unit(1, "mm"),
     padding.y = grid::unit(1, "mm"),
     min.size = 8,
+    place = NULL,
+    outside = NULL,
     grow = FALSE,
     reflow = FALSE,
     hjust = NULL,
@@ -155,8 +160,7 @@ GeomBarText <- ggplot2::ggproto(
     height = NULL,
     formatter = NULL,
     contrast = TRUE,
-    place = NULL,
-    outside = NULL
+    rich = FALSE
   ) {
 
     # Standardise the place argument
@@ -207,6 +211,7 @@ GeomBarText <- ggplot2::ggproto(
         grow = grow,
         reflow = reflow,
         contrast = contrast,
+        rich = rich,
         cl = "fittexttree"
       )
       gtrees$positives <- positives_gt
@@ -242,6 +247,7 @@ GeomBarText <- ggplot2::ggproto(
         grow = grow,
         reflow = reflow,
         contrast = contrast,
+        rich = rich,
         cl = "fittexttree"
       )
       gtrees$negatives <- negatives_gt
