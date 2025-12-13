@@ -1,6 +1,6 @@
 Package: ggfittext
 Title: Fit Text Inside a Box in 'ggplot2'
-Version: 0.10.2
+Version: 0.10.3
 Authors@R: c(person("David", "Wilkins", email = "david@wilkox.org",
                   role = c("aut", "cre")), 
              person("Brady", "Johnston", email = "brady.johnston@me.com", 
@@ -21,9 +21,9 @@ Encoding: UTF-8
 Language: en-GB
 Config/testthat/edition: 3
 NeedsCompilation: no
-Packaged: 2024-02-01 00:21:27 UTC; wilkox
+Packaged: 2025-12-13 08:43:16 UTC; wilkox
 Author: David Wilkins [aut, cre],
   Brady Johnston [ctb]
 Maintainer: David Wilkins <david@wilkox.org>
 Repository: CRAN
-Date/Publication: 2024-02-01 00:50:02 UTC
+Date/Publication: 2025-12-13 09:10:02 UTC
