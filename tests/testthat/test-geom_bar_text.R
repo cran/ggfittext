@@ -114,6 +114,16 @@ test_that("geom_bar_text() correctly handles explicit and implied flipped axes",
   })
 })
 
+test_that("horizontal bars are labelled with the value, not the category index (#45)", {
+  p <- ggplot(
+    data.frame(cat = c("a", "b"), val = c(10, 20)),
+    aes(x = val, y = cat)
+  ) +
+    geom_col() +
+    geom_bar_text()
+  expect_equal(layer_data(p, 2)$label, c(10, 20))
+})
+
 test_that("geom_bar_text() works with faceting", {
   expect_doppelganger("geom_bar_text() with faceting", {
     ggplot(
@@ -152,6 +162,99 @@ test_that("geom_bar_text() draws contrasting text", {
         values = c(1.0, 0.8, 0.6, 0.4, 0.2, 0)
       )
   })
+})
+
+test_that("contrast auto-detection tolerates NA colours (#56)", {
+  # When contrast is left to auto-detect and every non-NA text colour is the
+  # default black, a single NA colour previously made all(colour == "black")
+  # evaluate to NA, crashing makeContent() with "missing value where
+  # TRUE/FALSE needed". Auto-detection should ignore NA colours instead.
+  df <- data.frame(
+    cat = c("a", "b", "c"),
+    val = c(1, 1, 1),
+    txt = c("black", "black", NA)
+  )
+  p <- ggplot(df, aes(x = cat, y = val, label = cat, colour = txt)) +
+    geom_col() +
+    geom_bar_text() +
+    scale_colour_identity()
+
+  pdf(NULL)
+  on.exit(dev.off())
+  expect_no_error(print(p))
+})
+
+test_that("outside default is derived from position (string or object)", {
+  # position_identity(): outside should default to TRUE, whether the position
+  # is given as a string or as a Position object (#44)
+  expect_true(geom_bar_text(position = "identity")$geom_params$outside)
+  expect_true(geom_bar_text(position = position_identity())$geom_params$outside)
+
+  # Any other position defaults outside to FALSE. A Position object is required
+  # whenever a dodge width must be set, and comparing it with == would error.
+  expect_false(geom_bar_text(position = "stack")$geom_params$outside)
+  expect_false(
+    geom_bar_text(position = position_dodge(width = 0.9))$geom_params$outside
+  )
+
+  # An explicit outside is always honoured over the position-derived default.
+  expect_false(geom_bar_text(position = "identity", outside = FALSE)$geom_params$outside)
+})
+
+# geom_bar_text() nests one fittexttree per sign group inside an outer gTree, so
+# we reach into the positive group and draw it directly. The short bar (0.1)
+# cannot fit its label inside; the tall bar (100) always can. So the short-bar
+# label is dropped when outside = FALSE and drawn above the bar when
+# outside = TRUE.
+test_that("geom_bar_text() draws short-bar labels outside the bar (#44)", {
+  df <- data.frame(craft = c("a", "b"), altitude = c(0.1, 100))
+  draw <- function(outside) {
+    p <- ggplot(df, aes(x = craft, y = altitude, label = altitude)) +
+      geom_col() +
+      geom_bar_text(outside = outside, min.size = 8)
+    grDevices::pdf(NULL)
+    on.exit(grDevices::dev.off())
+    outer <- suppressWarnings(layer_grob(p, 2)[[1]])
+    # Both bars are positive, so there is a single fittexttree (the positives
+    # group). Assert that structure before reaching into it, so a refactor of
+    # the nesting fails here rather than silently drawing the wrong group.
+    expect_length(outer$children, 1)
+    expect_s3_class(outer$children[[1]], "fittexttree")
+    grid::makeContent(outer$children[[1]])$children
+  }
+
+  # The tall bar is always labelled; the short bar is only labelled when its
+  # label may be drawn outside the bar.
+  expect_length(draw(FALSE), 1)
+  expect_length(draw(TRUE), 2)
+})
+
+# A valid formatter is applied to the labels, including the value-axis labels
+# geom_bar_text() infers when no label aesthetic is mapped.
+test_that("geom_bar_text() applies a valid formatter to the labels", {
+  p <- ggplot(data.frame(x = c("a", "b"), y = c(1, 2)), aes(x, y)) +
+    geom_col() +
+    geom_bar_text(formatter = function(x) paste0(x, "%"))
+  expect_equal(layer_data(p, 2)$label, c("1%", "2%"))
+})
+
+# GeomBarText carries its own copy of the formatter validation, parallel to
+# GeomFitText's; exercise its error paths independently so the two cannot drift
+# apart unnoticed.
+test_that("geom_bar_text() rejects invalid formatters", {
+  base <- ggplot(data.frame(x = c("a", "b"), y = c(1, 2)), aes(x, y)) +
+    geom_col()
+
+  # Not a function at all (the geom's own check).
+  expect_error(
+    ggplot_build(base + geom_bar_text(formatter = "nope")),
+    "must be a function"
+  )
+  # Wrong type and wrong length are rejected by vapply's template enforcement.
+  expect_error(ggplot_build(base + geom_bar_text(formatter = function(x) 1)))
+  expect_error(
+    ggplot_build(base + geom_bar_text(formatter = function(x) c(x, x)))
+  )
 })
 
 test_that("width works as expected", {

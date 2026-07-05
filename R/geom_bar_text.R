@@ -26,11 +26,11 @@ geom_bar_text <- function(
   rich = FALSE,
   ...
 ) {
-
   # If position is "identity", outside should be set to TRUE by default;
   # otherwise, set to FALSE
   if (is.null(outside)) {
-    outside <- position == "identity"
+    outside <- (is.character(position) && position == "identity") ||
+      inherits(position, "PositionIdentity")
   }
 
   ggplot2::layer(
@@ -88,22 +88,22 @@ GeomBarText <- ggplot2::ggproto(
     data,
     params
   ) {
-
-    # If the label is missing, assume y is the label (as with stat_count)
-    if (! "label" %in% names(data)) {
-      data$label <- data$y
-    }
-
     # Detect if the bar is to be drawn with 'implied' flipped orientation as
     # permitted in ggplot2 v3.3.0
     implied_flip <- "mapped_discrete" %in% class(data$y)
     data$implied_flip <- implied_flip
 
+    # If the label is missing, assume the value axis is the label (as with
+    # stat_count). For flipped bars the value axis is x, otherwise y.
+    if (!"label" %in% names(data)) {
+      data$label <- if (implied_flip) data$x else data$y
+    }
+
     # Set bar width using the method of geom_boxplot, unless width/height
     # parameters are provided
     if (implied_flip) {
       # If 'height' is provided but not a unit, interpret it as numeric on y scale
-      if ((! is.null(params$height)) & (! inherits(params$height, "unit"))) {
+      if ((!is.null(params$height)) & (!inherits(params$height, "unit"))) {
         data$ymin <- data$y - params$height / 2
         data$ymax <- data$y + params$height / 2
       } else if (is.null(params$height)) {
@@ -113,7 +113,7 @@ GeomBarText <- ggplot2::ggproto(
       }
     } else {
       # If 'width' is provided but not a unit, interpret it as numeric on x scale
-      if ((! is.null(params$width)) & (! inherits(params$width, "unit"))) {
+      if ((!is.null(params$width)) & (!inherits(params$width, "unit"))) {
         data$xmin <- data$x - params$width / 2
         data$xmax <- data$x + params$width / 2
       } else if (is.null(params$width)) {
@@ -133,19 +133,27 @@ GeomBarText <- ggplot2::ggproto(
     }
 
     # Apply a formatter function, if one was given
-    if (! is.null(params$formatter)) {
-
+    if (!is.null(params$formatter)) {
       # Check that 'formatter' is a function
-      if (! is.function(params$formatter)) {
+      if (!is.function(params$formatter)) {
         cli::cli_abort("{.arg formatter} must be a function")
       }
 
       # Apply formatter to the labels, checking that the output is a character
       # vector of the correct length
-      formatted_labels <- vapply(data$label, params$formatter, character(1), USE.NAMES = FALSE)
-      if ((! length(formatted_labels) == length(data$label)) | 
-          (! is.character(formatted_labels))) {
-        cli::cli_abort("{.arg formatter} must produce a character vector of same length as input")
+      formatted_labels <- vapply(
+        data$label,
+        params$formatter,
+        character(1),
+        USE.NAMES = FALSE
+      )
+      if (
+        (!length(formatted_labels) == length(data$label)) |
+          (!is.character(formatted_labels))
+      ) {
+        cli::cli_abort(
+          "{.arg formatter} must produce a character vector of same length as input"
+        )
       }
       data$label <- formatted_labels
     }
@@ -175,9 +183,8 @@ GeomBarText <- ggplot2::ggproto(
     contrast = TRUE,
     rich = FALSE
   ) {
-
     # Standardise the place argument
-    if (! is.null(place)) {
+    if (!is.null(place)) {
       if (place %in% c("middle", "center")) {
         place <- "centre"
       }
@@ -187,7 +194,7 @@ GeomBarText <- ggplot2::ggproto(
     # it's probably been left as the default so contrast should be on.
     # Otherwise, it should be turned off
     if (is.null(contrast)) {
-      contrast <- all(data$colour == "black")
+      contrast <- all(data$colour == "black", na.rm = TRUE)
     }
 
     # Detect flipped coordinate system, including the 'implied flip' from

@@ -26,6 +26,11 @@ ggplot(altitudes, aes(x = craft, y = altitude, label = altitude)) +
   geom_bar_text()
 
 ## ----fig.width = 4, fig.height = 4--------------------------------------------
+ggplot(altitudes, aes(x = craft, y = altitude, label = altitude)) +
+  geom_col() +
+  geom_bar_text(outside = FALSE)
+
+## ----fig.width = 4, fig.height = 4--------------------------------------------
 ggplot(beverages, aes(x = beverage, y = proportion, label = ingredient,
                     fill = ingredient)) +
   geom_col(position = "stack") +

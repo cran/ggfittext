@@ -19,6 +19,11 @@ Useful links:
 \author{
 \strong{Maintainer}: David Wilkins \email{david@wilkox.org}
 
+Authors:
+\itemize{
+  \item David Wilkins \email{david@wilkox.org}
+}
+
 Other contributors:
 \itemize{
   \item Brady Johnston \email{brady.johnston@me.com} [contributor]
